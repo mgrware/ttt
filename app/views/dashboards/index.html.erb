@@ -1,0 +1,60 @@
+
+<div class="row pt-5">
+  <div class="col-md-4">
+     <div class="card">
+      <div class="card-header">
+        Top Players
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Win Rate</th>
+              <th scope="col">Score</th>
+            </tr>
+          </thead>
+          
+           <tbody class="table-group-divider">
+            <%= turbo_stream_from "users" %>
+            <%= turbo_frame_tag "users" do %>
+              <% @users.each do |user| %>
+                <%= render "dashboards/table/user", object: user %>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        Room list
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+           <%= link_to "Create Room", rooms_path, data: { turbo_method: :post }, class: "btn btn-primary me-md-2" %>
+          <button class="btn btn-info" type="button">Join Random</button>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Player</th>
+              <th scope="col">Status</th>
+              <th class="text-end" scope="col">#</th>
+            </tr>
+          </thead>
+          <tbody id="room_list">
+            <%= turbo_stream_from "rooms" %>
+            <%= turbo_frame_tag "rooms" do %>
+              <% @rooms.each do |room| %>
+                <%= render "dashboards/table/room", object: room %>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
