@@ -1,25 +1,35 @@
-<main data-controller="room">
-    <section id="field">
-        <div id="container">
-            <div data-action="click->room#handleClick" data-room-cell-value="1" class="cell"></div>
-            <div id="1" class="cell"></div>
-            <div id="2" class="cell"></div>
-            <div id="3" class="cell"></div>
-            <div id="4" class="cell"></div>
-            <div id="5" class="cell"></div>
-            <div id="6" class="cell"></div>
-            <div id="7" class="cell"></div>
-            <div id="8" class="cell"></div>
-        </div>
-    </section>
-    <section id="sidebar">
-        <p id="player1">Player 1</p>
-        <p id="player2">Player 2</p>
-        <div id="turns">
-            <p id="titleTurns">Nuber of turns</p>
-            <p id="numberTurns">0</p>
-        </div>
-        <h2 id="status"></h2>
-        <button id="restart">PLAY AGAIN</button>
-    </section>
-</main>
+<div class="div-center">
+  <div class="content">
+    <main data-controller="room" data-room-id-value="<%= params[:id] %>" data-room-game-id-value="<%= @game.try(:id) %>" >
+        <section id="field">
+            <div id="container">
+                <div id="0" data-action="click->room#handleClick" data-room-id-param="0" class="cell"></div>
+                <div id="1" data-action="click->room#handleClick" data-room-id-param="1" class="cell"></div>
+                <div id="2" data-action="click->room#handleClick" data-room-id-param="2" class="cell"></div>
+                <div id="3" data-action="click->room#handleClick" data-room-id-param="3" class="cell"></div>
+                <div id="4" data-action="click->room#handleClick" data-room-id-param="4" class="cell"></div>
+                <div id="5" data-action="click->room#handleClick" data-room-id-param="5" class="cell"></div>
+                <div id="6" data-action="click->room#handleClick" data-room-id-param="6" class="cell"></div>
+                <div id="7" data-action="click->room#handleClick" data-room-id-param="7" class="cell"></div>
+                <div id="8" data-action="click->room#handleClick" data-room-id-param="8" class="cell"></div>
+            </div>
+        </section>
+        <section id="sidebar">
+          <%= turbo_stream_from "players" %>
+          <%= turbo_frame_tag "players" do %>
+            <% @players.each_with_index do |player, i| %>
+              <div id="player_lists">
+                <%= render "rooms/shared/player_list", idx: i, object: player %>
+              </div>
+            <% end %>
+          <% end %>
+            <div id="turns">
+                <p id="titleTurns">Nuber of turns</p>
+                <p id="numberTurns">0</p>
+            </div>
+            <h2 id="status"></h2>
+            <button class="btn btn-primary"data-action="click->room#playGame">PLAY</button>
+        </section>
+    </main>
+  </div>
+</div>

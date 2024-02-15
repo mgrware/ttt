@@ -14,5 +14,9 @@ Rails.application.routes.draw do
   root "dashboards#index"
 
   resources :dashboards, only: [:index]
-  resources :rooms, only: [:create, :show]
+  resources :rooms, only: [:create, :show] do
+    member do
+      put :play
+    end
+  end
 end
