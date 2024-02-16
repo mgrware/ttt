@@ -3,7 +3,7 @@ class Room < ApplicationRecord
   
   has_many :players, dependent: :destroy
   has_many :users, through: :players, dependent: :destroy
-  has_many :games
+  has_many :games, dependent: :destroy
   has_one :game_active, -> { order("status asc") }, class_name: "Game" 
 
   belongs_to :user #created by
@@ -19,5 +19,12 @@ class Room < ApplicationRecord
     target: "room_list",
     partial: "dashboards/table/room",
     locals: { object: self }
+  end
+
+  def play_the_game
+    games.update_all(status: "inactive")
+    @games = games.create(play_at: Time.now)
+    ActionCable.server.broadcast("room_channel-#{id}", {data: @games, type: "play_game"})
+    return @games
   end
 end

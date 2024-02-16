@@ -1,15 +1,17 @@
-import { Controller } from "@hotwired/stimulus"
-import consumer from "./../channels/consumer"
+// controller.js
+import { Controller } from "@hotwired/stimulus";
+import consumer from "./../channels/consumer";
+import * as GameFunctions from "./services/game_function";
 
 export default class extends Controller {
-  gameState = ["", "", "", "", "", "", "", "", ""];
+  gameState = JSON.parse(document.querySelector("#game_state").innerHTML);
   gameActive = true;
-  currentPlayer = "X";
+  currentPlayer = document.querySelector("#current_player").value;
   statusDisplay = document.querySelector("#status");
   count = document.querySelector("#numberTurns");
-  
+
   winnMessage = () => `${this.currentPlayer} has won!`;
-  drawMessage = () => `it's a draw!`;
+  drawMessage = () => `It's a draw!`;
 
   winnLines = [
     [0, 1, 2],
@@ -23,30 +25,48 @@ export default class extends Controller {
   ];
 
   connect() {
-    this.roomId = this.data.get("idValue")
-    this.gameId = this.data.get("gameIdValue")
-    this.channel = consumer.subscriptions.create({channel: 'RoomChannel', room: this.roomId},
+    this.roomId = this.data.get("idValue");
+    this.gameId = this.data.get("gameIdValue");
+    this.currentPlayerId = this.data.get("currentPlayerIdValue");
+    console.log(this.gameState)
+    this.channel = consumer.subscriptions.create(
+      { channel: "RoomChannel", room: this.roomId },
       {
-        connected: this._connected.bind(this),
-        disconnected: this._disconnected.bind(this),
-        received: this._received.bind(this),
+        connected: GameFunctions.handleConnected.bind(this),
+        disconnected: GameFunctions.handleDisconnected.bind(this),
+        received: this._handleReceived.bind(this)
       }
     );
   }
 
-  _connected() {}
-
-  _disconnected() {}
-  
-  _received(data) {
-    console.log(data)
+  _handleReceived(res) {
+    const cell = document.getElementById(`cell-${res.data.cell_number}`);
+    if (res.type === "play_game") {
+      location.reload()
+    }
+    cell.innerHTML = res.sign;
+    this.gameState = res.game_states
   }
+  
 
-   handleClick(event) {
-    let clickedIndex = event.params.id;
-    console.log(this.gameId)
-    if (this.gameState[clickedIndex] !== "" || !this.gameActive || !this.gameId) return;
-    this.channel.perform('move', { room: this.roomId, game: this.gameId, cell: clickedIndex } )
+  handleClick(event) {
+    const clickedIndex = event.params.id;
+    console.log(this.gameState)
+    if (
+      this.gameState[clickedIndex] !== "" ||
+      !this.gameActive ||
+      !this.gameId
+    )
+      return;
+
+    this.channel.perform("move", {
+      room: this.roomId,
+      game_id: this.gameId,
+      cell: clickedIndex,
+      player_id: this.currentPlayerId,
+      sign: this.currentPlayer
+    });
+
     this.gameState[clickedIndex] = this.currentPlayer;
     event.target.innerHTML = this.currentPlayer;
     this.count.innerHTML = +this.count.innerHTML + 1;
@@ -55,68 +75,45 @@ export default class extends Controller {
 
   handleResult() {
     let roundWon = false,
-        winLine,
-        a,
-        b,
-        c,
-        i;
+      winLine,
+      a,
+      b,
+      c,
+      i;
 
     for (i = 0; i < 8; ++i) {
-        winLine = this.winnLines[i];
-        a = this.gameState[winLine[0]];
-        b = this.gameState[winLine[1]];
-        c = this.gameState[winLine[2]];
-        if (a === b && b === c && c !== "") {
-            roundWon = true;
-            break;
-        }
+      winLine = this.winnLines[i];
+      [a, b, c] = winLine.map(index => this.gameState[index]);
+
+      if (a === b && b === c && c !== "") {
+        roundWon = true;
+        break;
+      }
     }
 
     if (roundWon || !this.gameState.includes("")) {
-        if (roundWon) {
-            this.statusDisplay.innerHTML = this.winnMessage();
-            this.statusDisplay.style.color = "#139de2";
-            this.winColors(winLine);
-        } else this.statusDisplay.innerHTML = this.drawMessage();
-        this.gameActive = false;
-        return;
+      if (roundWon) {
+        this.statusDisplay.innerHTML = this.winnMessage();
+        this.statusDisplay.style.color = "#139de2";
+        GameFunctions.winColors(winLine);
+      } else this.statusDisplay.innerHTML = this.drawMessage();
+
+      this.gameActive = false;
+      return;
     }
 
     this.currentPlayer = this.currentPlayer === "X" ? "O" : "X";
-    this.handlePlayerTurn();
-  }
-
-
-
-  handlePlayerTurn() {
-    let p1 = document.querySelector("#player1"),
-    p2 = document.querySelector("#player2");
-
-    if (this.currentPlayer === "X") {
-        p1.style.background = "#8458B3";
-        p2.style.background = "#d0bdf4";
-    } else {
-        p1.style.background = "#d0bdf4";
-        p2.style.background = "#8458B3";
-    }
-  }
-
-  winColors(line) {
-    console.log(`${line}`);
-    for (let i = 0; i < 3; ++i) {
-        let cell = document.getElementById(`${line[i]}`);
-        cell.style.color = "#139de2";
-        cell.style.fontSize = "80px";
-    }
+    GameFunctions.handlePlayerTurn(
+      this.currentPlayer,
+      document.querySelector("#player1"),
+      document.querySelector("#player2")
+    );
   }
 
   playGame(event) {
-    fetch(`http://localhost:3000/rooms/${this.roomId}/play`, {
-      method: 'put'
+    fetch(`/rooms/${this.roomId}/play`, {
+      method: "put"
     })
-    .then(response => response.json())
-    .then(result => {
-      this.gameId = result.id
-    }).catch(error => console.error(error))
+    .then((rsp) => rsp.json());
   }
 }

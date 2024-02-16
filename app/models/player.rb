@@ -1,5 +1,5 @@
 class Player < ApplicationRecord
-  has_many :player_moves
+  has_many :player_moves, dependent: :destroy
   belongs_to :user
   belongs_to :room
 

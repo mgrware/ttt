@@ -1,17 +1,11 @@
 <div class="div-center">
   <div class="content">
-    <main data-controller="room" data-room-id-value="<%= params[:id] %>" data-room-game-id-value="<%= @game.try(:id) %>" >
+    <main data-controller="room" data-room-current-player-id-value="<%= current_player.id %>" data-room-id-value="<%= params[:id] %>" data-room-game-id-value="<%= @game.try(:id) %>" >
         <section id="field">
             <div id="container">
-                <div id="0" data-action="click->room#handleClick" data-room-id-param="0" class="cell"></div>
-                <div id="1" data-action="click->room#handleClick" data-room-id-param="1" class="cell"></div>
-                <div id="2" data-action="click->room#handleClick" data-room-id-param="2" class="cell"></div>
-                <div id="3" data-action="click->room#handleClick" data-room-id-param="3" class="cell"></div>
-                <div id="4" data-action="click->room#handleClick" data-room-id-param="4" class="cell"></div>
-                <div id="5" data-action="click->room#handleClick" data-room-id-param="5" class="cell"></div>
-                <div id="6" data-action="click->room#handleClick" data-room-id-param="6" class="cell"></div>
-                <div id="7" data-action="click->room#handleClick" data-room-id-param="7" class="cell"></div>
-                <div id="8" data-action="click->room#handleClick" data-room-id-param="8" class="cell"></div>
+              <% 9.times do |generate| %>
+                <div id="cell-<%= generate %>" data-action="click->room#handleClick" data-room-id-param="<%= generate %>" class="cell"> <%= player_sign(generate) %> </div>
+              <% end %>
             </div>
         </section>
         <section id="sidebar">
@@ -25,10 +19,12 @@
           <% end %>
             <div id="turns">
                 <p id="titleTurns">Nuber of turns</p>
-                <p id="numberTurns">0</p>
+                <p id="numberTurns"><%= @player_moves.present? ? @player_moves.count : 0 %></p>
             </div>
             <h2 id="status"></h2>
             <button class="btn btn-primary"data-action="click->room#playGame">PLAY</button>
+            <%= hidden_field_tag :current_player, current_player.sign %>
+            <p class="d-none" id="game_state"> <%= game_states %> </p>
         </section>
     </main>
   </div>

@@ -17,6 +17,7 @@ Rails.application.routes.draw do
   resources :rooms, only: [:create, :show] do
     member do
       put :play
+      put :winning
     end
   end
 end
