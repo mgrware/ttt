@@ -17,5 +17,11 @@
 3. rails db:create
 4. rails db:migrate
 5. bin/dev
+
+### Flow
+1. sign up / login
+2. create the room
+3. waiting another player
+4. play the game
  
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/virtualspirit/vtr_backend)
