@@ -11,25 +11,43 @@ class Game < ApplicationRecord
   attribute :status, :string, default: "active"
 
   def game_states
-    arr = []
-    9.times do |cell|
-      cell_sign = player_moves.where(cell_number: cell).present? ? player_moves.find_by(cell_number: cell).try(:player_sign) : ""
-      arr << cell_sign
-    end
-    
-    return arr
+    (0..8).map { |cell| player_moves.find_by(cell_number: cell)&.player_sign || "" }
   end
 
   def win_the_game(player_id)
     room.update(status: "waiting")
-    user = Player.find(player_id).user
-    update(finish_at: Time.now, winner: user, status: "inactive")
-    user.update(score: user.score + calculate_score, win_rate: user.calculate_winrate)
-
-    ActionCable.server.broadcast("room_channel-#{room.id}", {data: self, type: "game_over", player_name: winner.name})
+    player = Player.find(player_id)
+    user = player.user
+  
+    update(
+      finish_at: Time.now,
+      winner: user,
+      status: "inactive"
+    )
+  
+    user.update(
+      score: user.score + calculate_score,
+      win_rate: user.calculate_winrate
+    )
+  
+    broadcast_game_over_notification
   end
 
   def calculate_score
     (finish_at - play_at) / 60
+  end
+
+
+  private
+  
+  def broadcast_game_over_notification
+    ActionCable.server.broadcast(
+      "room_channel-#{room.id}",
+      {
+        data: self,
+        type: "game_over",
+        player_name: winner.name
+      }
+    )
   end
 end
