@@ -22,6 +22,7 @@ class Room < ApplicationRecord
   end
 
   def play_the_game
+    update(status: "playing")
     games.update_all(status: "inactive")
     @games = games.create(play_at: Time.now)
     ActionCable.server.broadcast("room_channel-#{id}", {data: @games, type: "play_game"})

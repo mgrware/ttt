@@ -2,6 +2,7 @@ class Player < ApplicationRecord
   has_many :player_moves, dependent: :destroy
   belongs_to :user
   belongs_to :room
+  has_one :game, through: :room, source: :games
 
   delegate :name, to: :user, prefix: true, allow_nil: true #user_name
 

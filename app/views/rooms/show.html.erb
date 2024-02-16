@@ -7,6 +7,7 @@
                 <div id="cell-<%= generate %>" data-action="click->room#handleClick" data-room-id-param="<%= generate %>" class="cell"> <%= player_sign(generate) %> </div>
               <% end %>
             </div>
+          <h2 id="status"></h2>
         </section>
         <section id="sidebar">
           <%= turbo_stream_from "players" %>
@@ -17,12 +18,12 @@
               </div>
             <% end %>
           <% end %>
+           
             <div id="turns">
                 <p id="titleTurns">Nuber of turns</p>
                 <p id="numberTurns"><%= @player_moves.present? ? @player_moves.count : 0 %></p>
             </div>
-            <h2 id="status"></h2>
-            <button class="btn btn-primary"data-action="click->room#playGame">PLAY</button>
+           <button class="btn btn-primary"data-action="click->room#playGame">PLAY</button>
             <%= hidden_field_tag :current_player, current_player.sign %>
             <p class="d-none" id="game_state"> <%= game_states %> </p>
         </section>

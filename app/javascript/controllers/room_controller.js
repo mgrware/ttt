@@ -6,11 +6,16 @@ import * as GameFunctions from "./services/game_function";
 export default class extends Controller {
   gameState = JSON.parse(document.querySelector("#game_state").innerHTML);
   gameActive = true;
+  gamePlayed = false;
   currentPlayer = document.querySelector("#current_player").value;
   statusDisplay = document.querySelector("#status");
   count = document.querySelector("#numberTurns");
+  p1 = document.querySelector("#player1");
+  p2 = document.querySelector("#player2");
+  playerIdX = document.querySelector("#player-X")
+  playerIdO = document.querySelector("#player-O")
 
-  winnMessage = () => `${this.currentPlayer} has won!`;
+  winnMessage = (name) => `${name} has won!`;
   drawMessage = () => `It's a draw!`;
 
   winnLines = [
@@ -28,7 +33,6 @@ export default class extends Controller {
     this.roomId = this.data.get("idValue");
     this.gameId = this.data.get("gameIdValue");
     this.currentPlayerId = this.data.get("currentPlayerIdValue");
-    console.log(this.gameState)
     this.channel = consumer.subscriptions.create(
       { channel: "RoomChannel", room: this.roomId },
       {
@@ -37,28 +41,48 @@ export default class extends Controller {
         received: this._handleReceived.bind(this)
       }
     );
+
   }
 
   _handleReceived(res) {
     const cell = document.getElementById(`cell-${res.data.cell_number}`);
     if (res.type === "play_game") {
       location.reload()
+    } else if (res.type === "game_over"){
+      this.statusDisplay.innerHTML = this.winnMessage(res.player_name);
+      this.statusDisplay.style.color = "#139de2";
+      this.gameActive = false
+    } else {
+      cell.innerHTML = res.sign;
+      this.gameState = res.game_states
+
+      if (res.sign === this.currentPlayer){
+        this.gameActive = false
+      } else {
+        this.gameActive = true
+      }
     }
-    cell.innerHTML = res.sign;
-    this.gameState = res.game_states
+    
+    GameFunctions.handlePlayerTurn(res.sign, this.p1, this.p2)
+    this.handleResult()
   }
   
 
   handleClick(event) {
     const clickedIndex = event.params.id;
-    console.log(this.gameState)
+
+    if(!this.gameId ) {
+      return alert("click play button");
+    }
+
     if (
       this.gameState[clickedIndex] !== "" ||
       !this.gameActive ||
       !this.gameId
     )
       return;
-
+    
+    this.gamePlayed = true
     this.channel.perform("move", {
       room: this.roomId,
       game_id: this.gameId,
@@ -74,6 +98,10 @@ export default class extends Controller {
   }
 
   handleResult() {
+    if(!this.gameActive)
+    return;
+    
+    let playerIds
     let roundWon = false,
       winLine,
       a,
@@ -86,6 +114,12 @@ export default class extends Controller {
       [a, b, c] = winLine.map(index => this.gameState[index]);
 
       if (a === b && b === c && c !== "") {
+        if (a === "X" && b === "X" && c === "X") {
+          this.sendWinner(this.playerIdX.value)
+        }else{
+          this.sendWinner(this.playerIdO.value)
+        }
+
         roundWon = true;
         break;
       }
@@ -93,27 +127,31 @@ export default class extends Controller {
 
     if (roundWon || !this.gameState.includes("")) {
       if (roundWon) {
-        this.statusDisplay.innerHTML = this.winnMessage();
-        this.statusDisplay.style.color = "#139de2";
         GameFunctions.winColors(winLine);
       } else this.statusDisplay.innerHTML = this.drawMessage();
 
       this.gameActive = false;
       return;
     }
-
-    this.currentPlayer = this.currentPlayer === "X" ? "O" : "X";
-    GameFunctions.handlePlayerTurn(
-      this.currentPlayer,
-      document.querySelector("#player1"),
-      document.querySelector("#player2")
-    );
   }
 
   playGame(event) {
+
     fetch(`/rooms/${this.roomId}/play`, {
       method: "put"
     })
-    .then((rsp) => rsp.json());
+    .then((rsp) => {
+    
+    });
+  }
+
+  sendWinner(player_id){
+    fetch(`/rooms/${this.roomId}/winning`, {
+      method: "put",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({game_id: this.gameId, player_id: player_id})
+    })
   }
 }

@@ -1,7 +1,7 @@
 class RoomsController < ApplicationController
   protect_from_forgery
 
-  before_action :prepare_room, only: [:play, :show]
+  before_action :prepare_room, only: [:play, :show, :winning]
   before_action :prepare_players, :prepare_game, :prepare_player_moves, only: [:show]
 
   def create
@@ -20,12 +20,13 @@ class RoomsController < ApplicationController
   end
 
   def play
-    @games = @room.play_the_game
-    render json: { data: @games.as_json }
+    games = @room.play_the_game
+    render json: { data: games.as_json }
   end
 
   def winning
-
+    games = @room.games.find(params[:game_id]).win_the_game(params[:player_id])
+    render json: { data: games.as_json }
   end
 
   private

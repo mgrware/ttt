@@ -1,2 +1,3 @@
 <p id="player<%= idx+1 %>"> <%= object.user_name %> </p>
 <p id="sign<%= idx+1 %>"> Player <%= object.sign %> </p>
+<%= hidden_field_tag "player-#{object.sign}", object.id %>
