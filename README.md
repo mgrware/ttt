@@ -1,24 +1,21 @@
-# README
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/virtualspirit/vtr_backend)
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+# Stack
+1. Ruby 3.1.1
+2. Ruby on Rails 7.1.3
+3. Postgresql
+4. Action Cable
+5. Stimulus
+6. bootstrap
 
-Things you may want to cover:
+## Installation
 
-* Ruby version
+### Development setup
 
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+1. bundle install
+2. copy the .example.env to .env
+3. rails db:create
+4. rails db:migrate
+5. bin/dev
+ 
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/virtualspirit/vtr_backend)
